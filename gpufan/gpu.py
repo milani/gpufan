@@ -47,6 +47,7 @@ class GPU(object):
             new_fan_speed = curve.evaluate(current_temp)
             self.__setSpeed(new_fan_speed)
             time.sleep(1.0)
+        nvmlShutdown()
 
     def __thread_alive(self):
         if self._thread and self._thread.is_alive():
