@@ -42,7 +42,6 @@ class GPU(object):
                 "-a [gpu:{0}]/GPUFanControlState=1".format(self.id),
                 "-a [fan:{0}]/GPUTargetFanSpeed={1}".format(self.id, speed)
         ]
-
         # using sb.run(cmd, ...) did not work! I guess there is a conflict in -c switch.
         sb.run(" ".join(cmd), shell=True, stdout=sb.DEVNULL, stderr=sb.DEVNULL, check=self.check_exceptions)
 
@@ -51,7 +50,7 @@ class GPU(object):
         self._handle = nvmlDeviceGetHandleByIndex(self.id)
         curve = Curve()
         while(not self.stopped()):
-            current_temp = self._getTemp()
+            current_temp = self.__getTemp()
             new_fan_speed = curve.evaluate(current_temp)
             self.__setSpeed(new_fan_speed)
             time.sleep(1.0)
@@ -62,7 +61,7 @@ class GPU(object):
             return True
         return False
 
-    def _getTemp(self):
+    def __getTemp(self):
         """Get temperature of the GPU."""
         return nvmlDeviceGetTemperature(self._handle, NVML_TEMPERATURE_GPU)
 
@@ -100,7 +99,7 @@ class GPU(object):
                 "-c {0}".format(self.display),
                 "-a [gpu:{0}]/GPUFanControlState=0".format(self.id)
         ]
-        sb.run(" ".join(cmd), shell=True, stdout=sb.PIPE, stderr=sb.PIPE, check=self.check_exceptions)
+        sb.run(" ".join(cmd), shell=True, stdout=sb.DEVNULL, stderr=sb.DEVNULL, check=self.check_exceptions)
 
     def __del__(self):
         """Make sure thread is stopped before destruction."""

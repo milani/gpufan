@@ -10,6 +10,10 @@ Credit: https://gist.github.com/byaka/6337021.
 class Curve(object):
     """Curve object represents a curve constructed using custom points.
 
+    If you want to provide custom points, make sure the GPU's thermal threshold
+    is set as the latest point. Otherwise, if temperature reaches above the latest
+    point, the function returns None.
+
     Arguments
     ---------
     curve_point_array list : a list of tuples of the form (temperature, fanspeed)
@@ -37,7 +41,7 @@ class Curve(object):
                 point_2 = self.cpa[point_i + 1]
                 delta_x = point_2[0] - point_1[0]
                 delta_y = point_2[1] - point_1[1]
-                gradient = float(delta_y)/float(delta_x)
+                gradient = float(delta_y) / float(delta_x)
                 x_bit = x - point_1[0]
                 y_bit = int(float(x_bit) * gradient)
                 y = point_1[1] + y_bit

@@ -59,9 +59,9 @@ def _controller(q):
     def signal_handler(*args):
         for gpu in gpus.values():
             gpu.driver()
-        raise KeyboardInterrupt
+        exit()
 
-    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     while 1:
         task = q.get()
@@ -84,6 +84,7 @@ def _controller(q):
 _mp_ctx = mp.get_context('fork')
 _mp_q = _mp_ctx.Queue()
 _mp_p = _mp_ctx.Process(target=_controller, args=(_mp_q,))
+_mp_p.daemon = True
 
 
 def _start():
