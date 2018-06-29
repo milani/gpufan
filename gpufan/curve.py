@@ -15,9 +15,9 @@ class Curve(object):
     curve_point_array list : a list of tuples of the form (temperature, fanspeed)
     """
 
-    def __init__(self, curve_point_array=[[30, 30], [40, 35],
-                                          [50, 40], [54, 45],
-                                          [59, 50], [64, 60],
+    def __init__(self, curve_point_array=[[30, 30], [40, 40],
+                                          [50, 45], [54, 50],
+                                          [59, 55], [64, 60],
                                           [68, 65], [70, 70],
                                           [80, 80], [86, 90]]):  # noqa: D107
         self.cpa = curve_point_array

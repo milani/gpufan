@@ -4,9 +4,9 @@ A GPU representes an physical gpu based on its index in the list of
 available gpus.
 """
 from threading import Thread, Event
-from subprocess import Popen, PIPE
 from .curve import Curve
-from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex, nvmlDeviceGetTemperature, NVML_TEMPERATURE_GPU
+from pynvml import nvmlInit, nvmlShutdown, nvmlDeviceGetHandleByIndex, nvmlDeviceGetTemperature, NVML_TEMPERATURE_GPU
+import subprocess as sb
 import time
 
 
@@ -15,11 +15,15 @@ class GPU(object):
 
     Arguments
     ---------
-    device_id int : index of the GPU
+    device_id int : Index of the GPU
+    prevent_exceptions boolean : Silent exceptions
+    display str : X display identifier
     """
 
-    def __init__(self, device_id):  # noqa: D107
+    def __init__(self, device_id, prevent_exceptions, display=":0"):  # noqa: D107
         self.id = device_id
+        self.display = display
+        self.check_exceptions = not prevent_exceptions
         self._stop = Event()
         self._thread = None
 
@@ -32,10 +36,15 @@ class GPU(object):
         return self._stop.isSet()
 
     def __setSpeed(self, speed):
-        process = Popen("nvidia-settings -a [gpu:{0}]/GPUFanControlState=1 -a [fan:{0}]/GPUTargetFanSpeed={1}".format(self.id, speed), shell=True, stdin=PIPE, stdout=PIPE, env={'DISPLAY':':0'})
-        process.wait()
-        if process.returncode != 0:
-            raise Exception("Could not set fan speed")
+        cmd = [
+                "nvidia-settings",
+                "-c {0}".format(self.display),
+                "-a [gpu:{0}]/GPUFanControlState=1".format(self.id),
+                "-a [fan:{0}]/GPUTargetFanSpeed={1}".format(self.id, speed)
+        ]
+
+        # using sb.run(cmd, ...) did not work! I guess there is a conflict in -c switch.
+        sb.run(" ".join(cmd), shell=True, stdout=sb.DEVNULL, stderr=sb.DEVNULL, check=self.check_exceptions)
 
     def __customCurveSpeed(self):
         nvmlInit()
@@ -43,7 +52,6 @@ class GPU(object):
         curve = Curve()
         while(not self.stopped()):
             current_temp = self._getTemp()
-            print(current_temp)
             new_fan_speed = curve.evaluate(current_temp)
             self.__setSpeed(new_fan_speed)
             time.sleep(1.0)
@@ -77,23 +85,26 @@ class GPU(object):
         """
         if self.__thread_alive():
             return
-        self.thread = Thread(target=self.__customCurveSpeed)
-        self.thread.daemon = True
-        self.thread.start()
+        self._thread = Thread(target=self.__customCurveSpeed)
+        self._thread.daemon = True
+        self._thread.start()
 
     def driver(self):
         """Return control of fan speed to the driver."""
         if self.__thread_alive():
             self.stop()
-            self.thread.join()
-        process = Popen("nvidia-settings -a [gpu:{0}]/GPUFanControlState=0".format(self.id), shell=True, stdin=PIPE, stdout=PIPE, env={'DISPLAY':'0.'})
-        process.wait()
-        if process.returncode != 0:
-            raise Exception("Problem occurred")
+            self._thread.join()
+
+        cmd = [
+                "nvidia-settings",
+                "-c {0}".format(self.display),
+                "-a [gpu:{0}]/GPUFanControlState=0".format(self.id)
+        ]
+        sb.run(" ".join(cmd), shell=True, stdout=sb.PIPE, stderr=sb.PIPE, check=self.check_exceptions)
 
     def __del__(self):
         """Make sure thread is stopped before destruction."""
         if self.__thread_alive():
-            self.thread.stop()
-            self.thread.join()
-            self.driver()
+            self._thread.stop()
+            self._thread.join()
+        self.driver()
