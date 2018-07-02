@@ -21,7 +21,7 @@ It can be used as a standalone script with enough options to control GPUs indivi
 
 Import it and call the approperiate control function:
 
-```
+```python
 import gpufan
 
 gpu_index = 0
