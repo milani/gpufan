@@ -38,4 +38,4 @@ gpufan.driver()
 
 ## Caution
 
-Use this module at your own risk. The author takes no responsibility.
+Use this module at your own risk. The author takes no responsibility and the scripts come with no warranty.
