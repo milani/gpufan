@@ -31,6 +31,7 @@ setup(
     packages=find_packages(exclude=['docs', 'tests']),
     setup_require=['pytest-runner'],
     tests_require=['pytest', 'sure'],
+    scripts=['bin/gpufan'],
     project_urls={
         'Bug Reports': 'https://github.com/milani/gpufan/issues',
         'Home Page': 'https://github.com/milani/gpufan'

@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+import sys
+import gpufan
+import signal
+import argparse
+
+
+class SpeedAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_str=None):
+        last_value = values[-1]
+        while len(namespace.gpu) > len(values):
+            values.append(last_value)
+        namespace.speed = values
+
+
+def check_speed(value):
+    ivalue = int(value)
+    if ivalue < 20 or ivalue > 100:
+        raise argparse.ArgumentTypeError("is expected to be between 20 and 100.")
+    return ivalue
+
+
+def main():
+    parser = argparse.ArgumentParser(description='GPUFan control script')
+    parser.add_argument('command', metavar='cmd', type=str, choices=['driver', 'aggressive', 'constant'], help='driver, aggressive or constant')
+    parser.add_argument('-g', '--gpu', nargs='+', dest='gpu', metavar='n', type=int, help='specify GPUs via their index', required=True)
+    parser.add_argument('-s', '--speed', nargs='+', dest='speed', metavar='n', action=SpeedAction, type=check_speed, help='if command is constant, use this to specify the speed.')
+    args = parser.parse_args()
+
+    cmd = args.command
+    for i, gpu in enumerate(args.gpu):
+        if cmd == 'constant':
+            if not args.speed or len(args.speed) < 1:
+                print('constant command needs -s/--speed', file=sys.stderr)
+                exit(1)
+            gpufan.constant(gpu, args.speed[i])
+        elif cmd == 'aggressive':
+            gpufan.aggressive(gpu)
+        else:
+            gpufan.driver(gpu)
+
+    gpufan._mp_p.join()
+
+main()
