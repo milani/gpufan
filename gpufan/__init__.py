@@ -1,6 +1,5 @@
 """GPUFan helps cooling GPUs inside python code."""
 
-import torch
 import multiprocessing as mp
 from threading import Lock
 from .gpu import GPU
@@ -20,6 +19,7 @@ _start_lock = Lock()
 
 def _get_device_id(device):
     try:
+        import torch
         return device.index or torch.cuda.current_device().index
     except AttributeError:
         return int(device)
