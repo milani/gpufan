@@ -19,21 +19,61 @@ It can be used as a standalone script with enough options to control GPUs indivi
 
 # How to use it?
 
-Import it and call the approperiate control function:
+Controlling nvidia gpu fan requires an `X` server to be running. To run `X` without having a monitor attached to the system requires special config.
+
+
+## Preparation
+
+Setup x config in a shell like below. You may need to use `sudo`.
+
+```
+$ nvidia-xconfig --enable-all-gpus --cool-bits=7 --connected-monitor=Monitor0 --allow-empty-initial-configuration --force-generate
+```
+
+*Warning: we used `--force-generate` flag. A backup of your previous config is saved and is reported as the result of running this function.*
+
+## Run X
+
+I think the best way is to use xinit:
+
+```
+$ xinit &
+```
+
+## Install GPUFan
+
+```
+$ pip install gpufan
+```
+
+## Usage
+
+You can use command line script:
+
+```
+$ gpufan constant -g 0 -s 60
+```
+
+Or in your python script:
 
 ```python
 import gpufan
 
-gpu_index = 0
+first_gpu = 0
+gpufan.constant(first_gpu, 60)
+```
 
-# Fan at constant speed of 60%
-gpufan.constant(gpu_index, 60)
+The above script, puts GPU 0 in `constant` mode with 60% speed. You can use `aggressive` or `driver` modes too:
 
-# Use an aggressive control
-gpufan.aggressive(gpu_index)
+```python
+second_gpu = 1
 
-# Give control back to the driver manually (after execution is finished, this line is automatically called so you don't have to)
-gpufan.driver()
+# In aggressive mode, a small increase in temperature causes a large increase in fan speed.
+gpufan.aggressive(second_gpu)
+
+# Give control back to the driver manually. Please note that after execution is finished, this line is automatically called so you don't have to.
+gpufan.driver(first_gpu)
+gpufan.driver(second_gpu)
 ```
 
 ## Caution
