@@ -2,8 +2,7 @@
 
 import torch
 import multiprocessing as mp
-import subprocess as sb
-from threading import Lock, Thread
+from threading import Lock
 from .gpu import GPU
 import signal
 
@@ -17,8 +16,6 @@ _gpus_in_control = {}
 _prevent_exceptions = False
 _started = False
 _start_lock = Lock()
-_x_thread = None
-_x_lock = Lock()
 
 
 def _get_device_id(device):
@@ -47,10 +44,6 @@ class Task(object):
 
     def __repr__(self):  # noqa: D105
         return '<Task GPU:{0} command:{1}>'.format(self.device_id, self.command)
-
-
-def _start_x():
-    sb.run('xinit', shell=True, check=not _prevent_exceptions)
 
 
 def _controller(q):
@@ -135,21 +128,6 @@ def driver(device):
     """
     _start()
     _send_task(DRIVER_CONTROL, device)
-
-
-def run_x():
-    """Run X instance.
-
-    Use this function to run an X instance if one is not already running
-    on the system. It is recommended to start X instance as a daemon in
-    the system rather than starting it using this module.
-    """
-    global _x_thread
-    with _x_lock:
-        if not (_x_thread and _x_thread.is_alive()):
-            _x_thread = Thread(target=_start_x)
-            _x_thread.daemon = True
-            _x_thread.start()
 
 
 def prevent_exceptions():
