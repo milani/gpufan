@@ -4,8 +4,9 @@ A GPU representes an physical gpu based on its index in the list of
 available gpus.
 """
 from threading import Thread, Event
+
+from .utils import exec_command
 from .curve import Curve
-from pynvml import nvmlInit, nvmlShutdown, nvmlDeviceGetHandleByIndex, nvmlDeviceGetTemperature, NVML_TEMPERATURE_GPU
 import subprocess as sb
 import time
 
@@ -31,6 +32,7 @@ class GPU(object):
         """Signal the thread to stop execution."""
         self._stop.set()
 
+    @property
     def stopped(self):
         """Check if stopping execution is requested."""
         return self._stop.isSet()
@@ -46,15 +48,12 @@ class GPU(object):
         sb.run(" ".join(cmd), shell=True, stdout=sb.DEVNULL, stderr=sb.DEVNULL, check=self.check_exceptions)
 
     def __customCurveSpeed(self):
-        nvmlInit()
-        self._handle = nvmlDeviceGetHandleByIndex(self.id)
         curve = Curve()
-        while(not self.stopped()):
+        while not self.stopped:
             current_temp = self.__getTemp()
             new_fan_speed = curve.evaluate(current_temp)
             self.__setSpeed(new_fan_speed)
             time.sleep(1.0)
-        nvmlShutdown()
 
     def __thread_alive(self):
         if self._thread and self._thread.is_alive():
@@ -63,7 +62,11 @@ class GPU(object):
 
     def __getTemp(self):
         """Get temperature of the GPU."""
-        return nvmlDeviceGetTemperature(self._handle, NVML_TEMPERATURE_GPU)
+
+        command = "nvidia-smi -i %d --query-gpu=temperature.gpu --format=csv,noheader" % self.id
+        temperature = exec_command(command).strip()
+
+        return temperature
 
     def constant(self, percentage):
         """Set a constant fan speed.
