@@ -66,7 +66,7 @@ class GPU(object):
         command = "nvidia-smi -i %d --query-gpu=temperature.gpu --format=csv,noheader" % self.id
         temperature = exec_command(command).strip()
 
-        return temperature
+        return int(temperature)
 
     def constant(self, percentage):
         """Set a constant fan speed.
