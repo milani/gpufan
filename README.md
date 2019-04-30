@@ -38,6 +38,10 @@ I think the best way is to use xinit:
 $ xinit &
 ```
 
+## Dependencies
+
+Please make sure `nvdia-smi` and `nvidia-settings` are installed. The latter usually needs to be installed manually whereas the former is usually included in the nvidia driver package.
+
 ## Install nvfan
 
 ```
