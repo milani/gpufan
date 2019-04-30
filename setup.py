@@ -11,7 +11,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='nvfan',
-    version='0.2.0a3',
+    version='0.2.0',
     url='https://github.com/magnusja/nvfan',
     description='Control Nvidia GPU fan in your python script.',
     long_description=long_description,
@@ -19,7 +19,7 @@ setup(
     author='Magnus Jahnen, Morteza Milani',
     author_email='magnus@jahnen.me',
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
