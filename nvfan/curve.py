@@ -19,11 +19,13 @@ class Curve(object):
     curve_point_array list : a list of tuples of the form (temperature, fanspeed)
     """
 
-    def __init__(self, curve_point_array=[[30, 30], [40, 40],
+    def __init__(self, curve_point_array=([20, 20],
+                                          [30, 30], [40, 40],
                                           [50, 45], [54, 50],
                                           [59, 55], [64, 60],
                                           [68, 65], [70, 70],
-                                          [80, 80], [86, 90]]):  # noqa: D107
+                                          [80, 80], [86, 90],
+                                          [100, 100])):  # noqa: D107
         self.cpa = curve_point_array
 
     def evaluate(self, x):
@@ -34,9 +36,8 @@ class Curve(object):
         x int : the temperature
         """
         point_i = 0
-        while(point_i < len(self.cpa) - 1):
-
-            if(self.cpa[point_i][0] <= x and self.cpa[point_i + 1][0] > x):
+        while point_i < len(self.cpa) - 1:
+            if self.cpa[point_i][0] <= x < self.cpa[point_i + 1][0]:
                 point_1 = self.cpa[point_i]
                 point_2 = self.cpa[point_i + 1]
                 delta_x = point_2[0] - point_1[0]
