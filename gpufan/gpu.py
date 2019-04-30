@@ -3,6 +3,7 @@
 A GPU representes an physical gpu based on its index in the list of
 available gpus.
 """
+import os
 from threading import Thread, Event
 
 from .utils import exec_command
@@ -10,6 +11,9 @@ from .curve import Curve
 import subprocess as sb
 import time
 import atexit
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GPU(object):
@@ -22,12 +26,18 @@ class GPU(object):
     display str : X display identifier
     """
 
-    def __init__(self, device_id, prevent_exceptions, display=":0"):  # noqa: D107
+    def __init__(self, device_id, prevent_exceptions, display=None):  # noqa: D107
         self.id = device_id
         self.display = display
         self.check_exceptions = not prevent_exceptions
         self._stop = Event()
         self._thread = None
+
+        self.check_display()
+
+    def check_display(self):
+        if not self.display:
+            self.display = os.environ.get("DISPLAY", ":0")
 
     def stop(self):
         """Signal the thread to stop execution."""
@@ -53,8 +63,10 @@ class GPU(object):
         curve = Curve()
         while not self.stopped:
             new_fan_speed = curve.evaluate(self.temperature)
+            logger.debug("set speed for gpu " + str(self.id) + " to " + str(new_fan_speed))
             self.speed = new_fan_speed
             time.sleep(delay)
+        logger.debug("exitting custom curve loop")
 
     def __thread_alive(self):
         if self._thread and self._thread.is_alive():
@@ -77,6 +89,7 @@ class GPU(object):
         ---------
         percentage int : An integer from 0 to 100
         """
+        logger.debug("set mode constant for gpu " + str(self.id) + " with speed " + str(percentage))
         if self.__thread_alive():
             self.stop()
             self._thread.join()
@@ -87,6 +100,7 @@ class GPU(object):
 
         It tries to set GPU fan to a high speed as soon as temperature rises.
         """
+        logger.debug("set mode aggresive for gpu " + str(self.id))
         if self.__thread_alive():
             return
         self._thread = Thread(target=self.__loop_custom_curve_speed)
@@ -95,6 +109,7 @@ class GPU(object):
 
     def driver(self):
         """Return control of fan speed to the driver."""
+        logger.debug("returning control to nvidia driver for gpu " + str(self.id))
         if self.__thread_alive():
             self.stop()
             self._thread.join()
@@ -108,6 +123,7 @@ class GPU(object):
 
     @atexit.register
     def do_exit(self):
+        logger.debug("do exit (atexit)")
         if self.__thread_alive():
             self._thread.stop()
             self._thread.join()
