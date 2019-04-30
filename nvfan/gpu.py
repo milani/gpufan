@@ -26,7 +26,7 @@ class GPU(object):
     display str : X display identifier
     """
 
-    def __init__(self, device_id, prevent_exceptions, display=None):  # noqa: D107
+    def __init__(self, device_id, prevent_exceptions=False, display=None):  # noqa: D107
         self.id = device_id
         self.display = display
         self.check_exceptions = not prevent_exceptions

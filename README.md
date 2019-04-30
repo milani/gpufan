@@ -1,4 +1,4 @@
-GPUFan
+nvfan
 ======
 
 A module to control Nvidia Graphic Cards' fan in your python script.
@@ -40,10 +40,10 @@ I think the best way is to use xinit:
 $ xinit &
 ```
 
-## Install GPUFan
+## Install nvfan
 
 ```
-$ pip install gpufan
+$ pip install nvfan
 ```
 
 ## Usage
@@ -51,16 +51,16 @@ $ pip install gpufan
 You can use command line script:
 
 ```
-$ gpufan constant -g 0 -s 60
+$ nvfan constant -g 0 -s 60
 ```
 
 Or in your python script:
 
 ```python
-import gpufan
+import nvfan
 
 first_gpu = 0
-gpufan.constant(first_gpu, 60)
+nvfan.constant(first_gpu, 60)
 ```
 
 The above script, puts GPU 0 in `constant` mode with 60% speed. You can use `aggressive` or `driver` modes too:
@@ -69,11 +69,20 @@ The above script, puts GPU 0 in `constant` mode with 60% speed. You can use `agg
 second_gpu = 1
 
 # In aggressive mode, a small increase in temperature causes a large increase in fan speed.
-gpufan.aggressive(second_gpu)
+nvfan.aggressive(second_gpu)
 
 # Give control back to the driver manually. Please note that after execution is finished, this line is automatically called so you don't have to.
-gpufan.driver(first_gpu)
-gpufan.driver(second_gpu)
+nvfan.driver(first_gpu)
+nvfan.driver(second_gpu)
+```
+
+Instead of using the module you can use the `GPU` class to have more control (i.e. setting custom X11 display, if not set `DISPLAY` environment variable is used, or if not set, `:0` is used as fallback)
+
+```python
+import gpufan
+
+gpu = gpufan.GPU(0, display=":1")  # or use default `None` for automatic lookup of display
+gpu.aggressive()
 ```
 
 ## Caution
