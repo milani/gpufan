@@ -16,8 +16,8 @@ setup(
     description='Control Nvidia GPU fan in your python script.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    author='Morteza Milani',
-    author_email='mrtz.milani@gmail.com',
+    author='Magnus Jahnen, Morteza Milani',
+    author_email='magnus@jahnen.me',
     classifiers=[
         'Development Status :: 1 - Planning',
         'Intended Audience :: Developers',
