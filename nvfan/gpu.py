@@ -34,6 +34,7 @@ class GPU(object):
         self._thread = None
 
         self.check_display()
+        atexit.register(self.do_exit)
 
     def check_display(self):
         if not self.display:
@@ -121,7 +122,6 @@ class GPU(object):
         ]
         sb.run(" ".join(cmd), shell=True, stdout=sb.DEVNULL, stderr=sb.DEVNULL, check=self.check_exceptions)
 
-    @atexit.register
     def do_exit(self):
         logger.debug("do exit (atexit)")
         if self.__thread_alive():
