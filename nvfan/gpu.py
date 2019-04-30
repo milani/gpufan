@@ -67,7 +67,7 @@ class GPU(object):
             logger.debug("set speed for gpu " + str(self.id) + " to " + str(new_fan_speed))
             self.speed = new_fan_speed
             time.sleep(delay)
-        logger.debug("exitting custom curve loop")
+        logger.debug("exiting custom curve loop")
 
     def __thread_alive(self):
         if self._thread and self._thread.is_alive():
@@ -125,7 +125,7 @@ class GPU(object):
     def do_exit(self):
         logger.debug("do exit (atexit)")
         if self.__thread_alive():
-            self._thread._stop()
+            self.stop()
             self._thread.join()
         self.driver()
 
