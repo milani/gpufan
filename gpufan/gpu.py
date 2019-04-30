@@ -9,6 +9,7 @@ from .utils import exec_command
 from .curve import Curve
 import subprocess as sb
 import time
+import atexit
 
 
 class GPU(object):
@@ -37,7 +38,7 @@ class GPU(object):
         """Check if stopping execution is requested."""
         return self._stop.isSet()
 
-    def __setSpeed(self, speed):
+    def speed(self, speed):
         cmd = [
                 "nvidia-settings",
                 "-c {0}".format(self.display),
@@ -46,21 +47,22 @@ class GPU(object):
         ]
         # using sb.run(cmd, ...) did not work! I guess there is a conflict in -c switch.
         sb.run(" ".join(cmd), shell=True, stdout=sb.DEVNULL, stderr=sb.DEVNULL, check=self.check_exceptions)
+    speed = property(None, speed)
 
-    def __customCurveSpeed(self):
+    def __loop_custom_curve_speed(self, delay=1.0):
         curve = Curve()
         while not self.stopped:
-            current_temp = self.__getTemp()
-            new_fan_speed = curve.evaluate(current_temp)
-            self.__setSpeed(new_fan_speed)
-            time.sleep(1.0)
+            new_fan_speed = curve.evaluate(self.temperature)
+            self.speed = new_fan_speed
+            time.sleep(delay)
 
     def __thread_alive(self):
         if self._thread and self._thread.is_alive():
             return True
         return False
 
-    def __getTemp(self):
+    @property
+    def temperature(self):
         """Get temperature of the GPU."""
 
         command = "nvidia-smi -i %d --query-gpu=temperature.gpu --format=csv,noheader" % self.id
@@ -78,7 +80,7 @@ class GPU(object):
         if self.__thread_alive():
             self.stop()
             self._thread.join()
-        self.__setSpeed(percentage)
+        self.speed = percentage
 
     def aggressive(self):
         """Control GPU fan based on an aggressive regime.
@@ -87,7 +89,7 @@ class GPU(object):
         """
         if self.__thread_alive():
             return
-        self._thread = Thread(target=self.__customCurveSpeed)
+        self._thread = Thread(target=self.__loop_custom_curve_speed)
         self._thread.daemon = True
         self._thread.start()
 
@@ -104,9 +106,13 @@ class GPU(object):
         ]
         sb.run(" ".join(cmd), shell=True, stdout=sb.DEVNULL, stderr=sb.DEVNULL, check=self.check_exceptions)
 
-    def __del__(self):
-        """Make sure thread is stopped before destruction."""
+    @atexit.register
+    def do_exit(self):
         if self.__thread_alive():
             self._thread.stop()
             self._thread.join()
         self.driver()
+
+    def __del__(self):
+        """Make sure thread is stopped before destruction."""
+        self.do_exit()
