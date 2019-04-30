@@ -125,7 +125,7 @@ class GPU(object):
     def do_exit(self):
         logger.debug("do exit (atexit)")
         if self.__thread_alive():
-            self._thread.stop()
+            self._thread._stop()
             self._thread.join()
         self.driver()
 
